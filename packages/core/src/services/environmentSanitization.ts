@@ -89,6 +89,10 @@ export const ALWAYS_ALLOWED_ENVIRONMENT_VARIABLES: ReadonlySet<string> =
     'REPOSITORY',
     'TITLE',
     'TRIGGERING_ACTOR',
+    // Display environment variables (needed for headful browsing)
+    'DISPLAY',
+    'WAYLAND_DISPLAY',
+    'XDG_RUNTIME_DIR',
   ]);
 
 export const NEVER_ALLOWED_ENVIRONMENT_VARIABLES: ReadonlySet<string> = new Set(
