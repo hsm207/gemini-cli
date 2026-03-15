@@ -379,9 +379,16 @@ export class BrowserManager {
     // Create stdio transport to npx chrome-devtools-mcp.
     // stderr is piped (not inherited) to prevent MCP server banners and
     // warnings from corrupting the UI in alternate buffer mode.
+    const filteredEnv: Record<string, string> = Object.fromEntries(
+      Object.entries(process.env).filter(
+        (entry): entry is [string, string] => entry[1] !== undefined,
+      ),
+    );
+
     this.mcpTransport = new StdioClientTransport({
       command: process.platform === 'win32' ? 'npx.cmd' : 'npx',
       args: mcpArgs,
+      env: filteredEnv,
       stderr: 'pipe',
     });
 

@@ -6,5 +6,15 @@
   },
   "general": {
     "devtools": true
+  },
+  "agents": {
+    "browser": {
+      "headless": false
+    },
+    "overrides": {
+      "browser_agent": {
+        "enabled": true
+      }
+    }
   }
 }
