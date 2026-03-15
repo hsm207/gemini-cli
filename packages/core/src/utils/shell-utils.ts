@@ -41,6 +41,58 @@ export interface ShellConfiguration {
   shell: ShellType;
 }
 
+/**
+ * Detects if a file is a Windows binary by checking for the 'MZ' magic bytes
+ * (Mark Zbikowski header). This is used to identify Windows executables
+ * running under WSL2 that require child_process (no PTY) to prevent hangs.
+ */
+export async function isWindowsBinary(filePath: string): Promise<boolean> {
+  try {
+    const stats = await fs.promises.lstat(filePath);
+    if (stats.isSymbolicLink()) {
+      const target = await fs.promises.readlink(filePath);
+      return await isWindowsBinary(
+        path.resolve(path.dirname(filePath), target),
+      );
+    }
+
+    const fd = await fs.promises.open(filePath, 'r');
+    try {
+      const buffer = Buffer.alloc(2);
+      await fd.read(buffer, 0, 2, 0);
+      return buffer.toString('ascii') === 'MZ';
+    } finally {
+      await fd.close();
+    }
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Scans a shell command pipeline and determines if any of the participating
+ * executables are Windows binaries.
+ */
+export async function isAnyWindowsBinaryInPipeline(
+  command: string,
+): Promise<boolean> {
+  if (os.platform() !== 'linux') {
+    return false;
+  }
+
+  // Ensure parsers are ready before we try to extract command roots.
+  await initializeShellParsers();
+
+  const roots = [...new Set(getCommandRoots(command))];
+  for (const root of roots) {
+    const resolved = await resolveExecutable(root);
+    if (resolved && (await isWindowsBinary(resolved))) {
+      return true;
+    }
+  }
+  return false;
+}
+
 export async function resolveExecutable(
   exe: string,
 ): Promise<string | undefined> {
