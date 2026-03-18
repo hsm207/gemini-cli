@@ -758,7 +758,6 @@ export class GeminiClient {
     }
 
     if (loopDetectedAbort) {
-      controller.abort();
       return turn;
     }
 
@@ -1231,10 +1230,8 @@ export class GeminiClient {
     boundedTurns: number,
     isInvalidStreamRetry: boolean,
     displayContent?: PartListUnion,
-    controllerToAbort?: AbortController,
+    _controllerToAbort?: AbortController,
   ): AsyncGenerator<ServerGeminiStreamEvent, Turn> {
-    controllerToAbort?.abort();
-
     // Clear the detection flag so the recursive turn can proceed, but the count remains 1.
     this.loopDetector.clearDetection();
 
