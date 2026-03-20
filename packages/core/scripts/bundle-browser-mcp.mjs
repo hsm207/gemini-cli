@@ -45,7 +45,7 @@ async function bundle() {
   try {
     const entryPoint = path.resolve(
       __dirname,
-      '../../../node_modules/chrome-devtools-mcp/build/src/index.js',
+      '../../../node_modules/chrome-devtools-mcp/build/src/bin/chrome-devtools-mcp.js',
     );
     await esbuild.build({
       entryPoints: [entryPoint],
