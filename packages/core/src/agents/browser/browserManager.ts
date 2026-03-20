@@ -368,6 +368,12 @@ export class BrowserManager {
       mcpArgs.push('--no-usage-statistics', '--no-performance-crux');
     }
 
+    // "Human Mask" Stealth Flags:
+    // 1. Ignore the default automation flag to prevent navigator.webdriver from being set to true.
+    mcpArgs.push("--ignore-default-chrome-arg='--enable-automation'");
+    // 2. Disable the Blink feature that websites use to detect automation.
+    mcpArgs.push('--chromeArg="--disable-blink-features=AutomationControlled"');
+
     if (
       browserConfig.customConfig.allowedDomains &&
       browserConfig.customConfig.allowedDomains.length > 0
