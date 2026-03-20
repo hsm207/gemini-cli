@@ -83,14 +83,15 @@ describe('Browser Privacy & Bot-Detection Integration', () => {
   });
 
   it('should bypass Google bot-detection using the "Human Mask" stealth flags', async () => {
-    // 1. Arrange: Real config with stealth active (Blackout + Mask)
+    // 1. Arrange: Real config with stealth and isolated profile active
     const settings = createTestMergedSettings({
       privacy: {
         usageStatisticsEnabled: false,
       },
       agents: {
         browser: {
-          headless: true, // Headless for faster CI/test execution
+          headless: false, // Force headed mode for authentic bot-detection testing
+          sessionMode: 'isolated', // FORCE A NAKED PROFILE for every test run
           allowedDomains: [], // Total Liberation
         },
       },
@@ -111,7 +112,9 @@ describe('Browser Privacy & Bot-Detection Integration', () => {
     try {
       // 2. Act: Navigate to Google Search (The "War Zone")
       // eslint-disable-next-line no-console
-      console.log('🕵️‍♀️ [STEALTH TEST] Navigating to Google Search...');
+      console.log(
+        '🕵️‍♀️ [STEALTH TEST] Navigating to Google Search with a NAKED profile...',
+      );
 
       const client = await browserManager.getRawMcpClient();
 
