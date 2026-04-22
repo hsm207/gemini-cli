@@ -773,6 +773,22 @@ describe('BrowserManager', () => {
     });
   });
 
+  describe('Stealth flags', () => {
+    it('should pass stealth flags to hide automation state', async () => {
+      const manager = BrowserManager.getInstance(mockConfig);
+      await manager.ensureConnection();
+
+      const args = vi.mocked(StdioClientTransport).mock.calls[0]?.[0]
+        ?.args as string[];
+      expect(args).toContain(
+        '--chromeArg="--disable-blink-features=AutomationControlled"',
+      );
+      expect(args).toContain(
+        '--chromeArg="--ignore-default-chrome-arg=--enable-automation"',
+      );
+    });
+  });
+
   describe('MCP isolation', () => {
     it('should use raw MCP SDK Client, not McpClient wrapper', async () => {
       const manager = new BrowserManager(mockConfig);
