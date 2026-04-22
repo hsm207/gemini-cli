@@ -16,6 +16,7 @@ import type { IPty } from '@lydell/node-pty';
 import { getCachedEncodingForBuffer } from '../utils/systemEncoding.js';
 import {
   getShellConfiguration,
+  isAnyWindowsBinaryInPipeline,
   resolveExecutable,
   type ShellType,
 } from '../utils/shell-utils.js';
@@ -326,7 +327,25 @@ export class ShellExecutionService {
     shouldUseNodePty: boolean,
     shellExecutionConfig: ShellExecutionConfig,
   ): Promise<ShellExecutionHandle> {
-    if (shouldUseNodePty) {
+    let finalShouldUsePty = shouldUseNodePty;
+
+    // WSL2 PTY deadlock mitigation: Windows binaries executed from WSL2 (Linux)
+    // often hang or deadlock when run in a PTY. We detect them and force
+    // child_process fallback.
+    if (finalShouldUsePty && os.platform() === 'linux') {
+      try {
+        if (await isAnyWindowsBinaryInPipeline(commandToExecute)) {
+          debugLogger.debug(
+            'Windows binary detected in WSL2 pipeline; bypassing PTY for stability.',
+          );
+          finalShouldUsePty = false;
+        }
+      } catch (err) {
+        debugLogger.error('Failed to check for Windows binaries in WSL2:', err);
+      }
+    }
+
+    if (finalShouldUsePty) {
       const ptyInfo = await getPty();
       if (ptyInfo) {
         try {
