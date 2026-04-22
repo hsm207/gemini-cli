@@ -15,6 +15,53 @@ import {
 } from 'node:child_process';
 
 /**
+ * Checks if a file is a Windows binary by inspecting its magic bytes (MZ).
+ */
+async function isWindowsBinary(filePath: string): Promise<boolean> {
+  try {
+    const stats = await fs.promises.stat(filePath);
+    if (!stats.isFile()) {
+      return false;
+    }
+
+    const fd = await fs.promises.open(filePath, 'r');
+    try {
+      const buffer = Buffer.alloc(2);
+      await fd.read(buffer, 0, 2, 0);
+      return buffer.toString('ascii') === 'MZ';
+    } finally {
+      await fd.close();
+    }
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Scans a shell command pipeline and determines if any of the participating
+ * executables are Windows binaries.
+ */
+export async function isAnyWindowsBinaryInPipeline(
+  command: string,
+): Promise<boolean> {
+  if (os.platform() !== 'linux') {
+    return false;
+  }
+
+  // Ensure parsers are ready before we try to extract command roots.
+  await initializeShellParsers();
+
+  const roots = [...new Set(getCommandRoots(command))];
+  for (const root of roots) {
+    const resolved = await resolveExecutable(root);
+    if (resolved && (await isWindowsBinary(resolved))) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
  * Extracts the primary command name from a potentially wrapped shell command.
  * Strips shell wrappers and handles shopt/set/etc.
  *
