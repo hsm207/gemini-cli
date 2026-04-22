@@ -687,6 +687,12 @@ export class BrowserManager {
       );
     }
 
+    // Human Mask: Disable blink features that leak automation state
+    mcpArgs.push('--chromeArg="--disable-blink-features=AutomationControlled"');
+    mcpArgs.push(
+      '--chromeArg="--ignore-default-chrome-arg=--enable-automation"',
+    );
+
     debugLogger.log(
       `Launching bundled chrome-devtools-mcp (${sessionMode} mode) with args: ${mcpArgs.join(' ')}`,
     );
